@@ -1,0 +1,19 @@
+{{ if eq .Values.env "local" }}
+# ATTENTION: When redoing production cluster from scratch, create this PersistentVolumeClaim manually,
+# because it can be done only once to preserve the data inside Volume!
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-claim
+  namespace: <namespace>
+spec:
+  {{ if eq .Values.env "local" }}
+  storageClassName: local-storage
+  volumeName: pv-local
+  {{ end }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500M
+{{ end }}

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serving-deployment
+  namespace: <namespace>
+spec:
+  selector:
+    matchLabels:
+      app: serving
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: serving
+    spec:
+      containers:
+        - name: serving-app
+          image: {{.Values.serving_deployment.image}}
+          imagePullPolicy: {{.Values.serving_deployment.imagePullPolicy}}
+          ports:
+          - containerPort: 8000
+          env:
+            {{- range $key, $val := .Values.serving_deployment.env }}
+              - name: {{ $key }}
+                value: {{ $val }}
+            {{- end }}
+          {{ if eq .Values.env "prod" }}
+          volumeMounts:
+            - mountPath: /etc/storage-cred
+              name: storage-cred
+              readOnly: true
+          {{ end }}
+      {{ if eq .Values.env "prod" }}
+      volumes:
+        - name: storage-cred
+          secret:
+            secretName: storage-cred
+      {{ end }}

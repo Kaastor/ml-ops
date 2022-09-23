@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: redis
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  # the name here should match the name of the Service
+  name: redis
+  namespace: redis
+subsets:
+  - addresses:
+      - ip: {{.Values.redis_address}}
+    ports:
+      - port: 6379

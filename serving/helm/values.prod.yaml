@@ -1,0 +1,22 @@
+env: prod
+mlflow_deployment:
+  image: <image>
+  imagePullPolicy: Always
+  entry: mlflow server --backend-store-uri $(BACKEND) --default-artifact-root $(ARTIFACTS) --host 0.0.0.0
+  env:
+    GOOGLE_APPLICATION_CREDENTIALS: <credentials-path>
+    BACKEND: postgresql://postgres:postgres@localhost:5432/mlflowdb
+    ARTIFACTS: <bucket-path>
+serving_deployment:
+  image: <image>
+  imagePullPolicy: Always
+  env:
+    ENV: prod
+    GOOGLE_APPLICATION_CREDENTIALS: <credentials-path>
+    MODEL: convolutional_ae
+redis:
+  storageClass: standard
+
+mongodb_address: 10.0.0.1
+monitoring_apm_address: 10.0.0.2
+redis_address: 10.0.0.3

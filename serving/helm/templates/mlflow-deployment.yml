@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-deployment
+  namespace: <namespace>
+spec:
+  selector:
+    matchLabels:
+      app: mlflow
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+        - name: mlflow-server
+          image: {{.Values.mlflow_deployment.image}}
+          imagePullPolicy: {{.Values.mlflow_deployment.imagePullPolicy}}
+          ports:
+            - containerPort: 5000
+          env:
+            {{- range $key, $val := .Values.mlflow_deployment.env }}
+              - name: {{ $key }}
+                value: {{ $val }}
+            {{- end }}
+            {{ if eq .Values.env "prod" }}
+          volumeMounts:
+            - mountPath: /etc/storage-cred
+              name: storage-cred
+              readOnly: true
+          {{ end }}
+          command: [ "/bin/sh" ] # migration: mlflow db upgrade postgresql://postgres:postgres@localhost:5432/mlflowdb &&
+          args:
+            - -c
+            - >-
+              {{.Values.mlflow_deployment.entry}}
+        - name: mlflow-db
+          image: postgres:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: mlflowdb
+            - name: POSTGRES_USER
+              value: user
+            - name: POSTGRES_PASSWORD
+              value: password
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: mlflow-volume
+              subPath: mlflow
+      volumes:
+        {{ if eq .Values.env "prod" }}
+        - name: storage-cred
+          secret:
+            secretName: storage-cred
+        {{ end }}
+        - name: mlflow-volume
+          persistentVolumeClaim:
+            claimName: mlflow-claim

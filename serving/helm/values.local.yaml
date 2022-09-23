@@ -1,0 +1,28 @@
+env: local
+mlflow_deployment:
+  image: <image>
+  imagePullPolicy: IfNotPresent # important for skaffold to work
+  entry: mlflow server --backend-store-uri $(BACKEND) --default-artifact-root $(ARTIFACTS) --serve-artifacts --host 0.0.0.0
+  env:
+    MLFLOW_S3_ENDPOINT_URL: http://10.0.1.1:9000/
+    AWS_ACCESS_KEY_ID: minio
+    AWS_SECRET_ACCESS_KEY: minio123
+    BACKEND: postgresql://postgres:postgres@localhost:5432/mlflowdb
+    ARTIFACTS: [bucket-path]
+serving_deployment:
+  image: <image>
+  imagePullPolicy: IfNotPresent # important for skaffold to work
+  env:
+    ENV: local
+    MLFLOW_S3_ENDPOINT_URL: http://10.0.1.1:9000/
+    AWS_ACCESS_KEY_ID: minio
+    AWS_SECRET_ACCESS_KEY: minio123
+    MODEL: convolutional_ae
+redis:
+  storageClass: local-storage
+
+# localhost mongodb address
+mongodb_address: 172.17.0.1
+monitoring_apm_address: 10.0.1.1
+# address from docker
+redis_address: 172.18.0.3

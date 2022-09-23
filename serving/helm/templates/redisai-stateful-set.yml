@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redisai-ss
+  namespace: redis
+spec:
+  serviceName: redisai-clusterip
+  # [local] adding more replicas will increase number of PVC - be sure there is enough PV (and capacity)!
+  # remember to increase number of sentinels too!
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redisai
+  template:
+    metadata:
+      labels:
+        app: redisai
+    spec:
+      containers:
+        - name: redisai
+          image: redislabs/redisai
+          ports:
+            - containerPort: 6379
+              name: redisai
+          volumeMounts:
+            # mounting 'data' volume which will be automatically provisioned via volumeClaimTemplates
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        namespace: redisai
+      spec:
+        {{ if eq .Values.env "local" }}
+        storageClassName: {{ .Values.redis.storageClass }}
+        selector:
+          matchLabels:
+            type: local-redisai
+        {{ end }}
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Mi

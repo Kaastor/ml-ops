@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8200
+      targetPort: 8200
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  # the name here should match the name of the Service
+  name: monitoring
+subsets:
+  - addresses:
+      - ip: {{.Values.monitoring_apm_address}}
+    ports:
+      - port: 8200

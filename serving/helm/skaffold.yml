@@ -1,0 +1,48 @@
+apiVersion: skaffold/v2beta28
+kind: Config
+metadata:
+  name: skaffold
+build:
+  artifacts:
+  - image: localhost:32000/service
+#    sync: # fixme not working as expected - not syncing files
+#      infer: [ "**/*" ]
+    context: ../../../service
+    docker:
+      dockerfile: ../../../service/Dockerfile
+  - image: localhost:32000/serving
+#    sync:
+#      infer: [ "**/*" ]
+    context: ../../../serving
+    docker:
+      dockerfile: ../../../serving/Dockerfile
+
+deploy:
+  kubeContext: microk8s
+  helm:
+    releases:
+      - name: release-name
+        chartPath: .
+        artifactOverrides:
+          service_deployment.image: localhost:32000/service
+          serving_deployment.image: localhost:32000/serving
+        valuesFiles: ["./values.local.yaml"]
+        namespace: <namespace>
+
+portForward:
+  - resourceType: service
+    resourceName: mlflow-loadbalancer-internal
+    namespace: <namespace>
+    port: 80 # targetPort from service's yaml config
+    localPort: 4500
+
+  - resourceType: service
+    resourceName: serving-loadbalancer-internal
+    namespace: <namespace>
+    port: 80
+    localPort: 4501
+  - resourceType: service
+    resourceName: redisai-loadbalancer-internal
+    namespace: redis
+    port: 6379
+    localPort: 4502
