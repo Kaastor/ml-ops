@@ -1,0 +1,10 @@
+redisai
+fastapi==0.75.0
+uvicorn==0.17.6
+redis==4.2.0
+scikit-learn
+mlflow==1.26.1
+protobuf==3.20.*
+google-cloud-storage
+boto3
+tensorflow==2.8.0
