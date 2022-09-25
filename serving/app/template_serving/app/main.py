@@ -2,9 +2,9 @@ import os
 
 import mlflow
 import uvicorn
+from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-
 from demo_serving.app.api.models import Stage
 from demo_serving.app.api.serving import serving
 from demo_serving.app.service.model_cache import RedisAIConnector
@@ -12,6 +12,17 @@ from demo_serving.app.service.model_cache import RedisAIConnector
 mlflow.set_tracking_uri("http://mlflow-loadbalancer-internal")
 app = FastAPI(openapi_url='/api/v1/serving/openapi.json', docs_url='/api/v1/serving/docs')
 background_tasks = BackgroundTasks()
+
+apm = make_apm_client(get_config())
+app.add_middleware(ElasticAPM, client=apm)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
 
 app.add_middleware(
     CORSMiddleware,

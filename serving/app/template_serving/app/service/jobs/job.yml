@@ -1,0 +1,22 @@
+# We'll never use this.
+# This is our guide template to implement *_job.py
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-name
+  namespace: <namespace>
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      name: update-whitelist-pod
+    spec:
+      containers:
+      - image: image-name
+        imagePullPolicy: IfNotPresent
+        name: job-name
+        command: ["python3", "-m", "demo_service.app.jobs.job_executable_code"]
+        args:
+          - "arg"
+      restartPolicy: Never
