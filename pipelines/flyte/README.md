@@ -44,6 +44,20 @@ It is separate from the Pyflyte library.
   ❇️ Run the following command to export sandbox environment variables for accessing flytectl
   export FLYTECTL_CONFIG=/home/przemek/.flyte/config-sandbox.yaml
   ```
+* Configure local `~/.flyte/config-sandbox.yaml`:
+  ```yaml
+  admin:
+    # For GRPC endpoints you might want to use dns:///flyte.myexample.com
+    endpoint: localhost:30080
+    authType: Pkce
+    insecure: true
+  console:
+    endpoint: http://localhost:30081
+  logger:
+    show-source: true
+    level: 0
+  ```
+* Add environmental variable in your system: `FLYTE_CONFIG_FILE=~/.flyte/config-sandbox.yaml` to point Flyte to config file.
 
 #### Use the Flyte Sandbox to
 * Try out Flyte locally using a single Docker command or using flytectl sandbox
@@ -77,6 +91,7 @@ Flyte uses the current context to determine the project under which the workflow
   └── example.py    # Example Flyte workflows
   ```
 * Remove entries from `./workflows/__init__.py` as it can make problems.
+* Add project: ` flytectl create project --file project.yml`
 
 ### Running workflow locally
 
@@ -104,9 +119,12 @@ if __name__ == "__main__":
 * Package your Project with pyflyte package: `pyflyte --pkgs workflows package --image ghcr.io/flyteorg/flytekit:py3.9-latest`
 * Register with flytectl register: 
  ```
- flytectl register files \
-  --project flytesnacks \
-  --domain development \
-  --archive flyte-package.tgz \
+ flytectl register files  \
+  --project machine-learning-project  \
+  --domain development  \
+  --archive flyte-package.tgz  \
   --version "$(git rev-parse HEAD)"
  ```
+ Workflow is now registered under specified project
+* Run workflow under specified project: `pyflyte run --remote --project machine-learning-project ./workflows/ml_workflow.py training_workflow --hyperparameters '{"C": 0.2}'`
+* Run workflow under specified project and domain: `pyflyte run --remote --project machine-learning-project --domain staging ./workflows/ml_workflow.py training_workflow --hyperparameters '{"C": 0.2}'`

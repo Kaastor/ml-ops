@@ -1,0 +1,6 @@
+id: "machine-learning-project"
+name: "Machine Learning Project"
+labels:
+  values:
+    app: flyte
+description: "Some description for the Machine Learning Project."
